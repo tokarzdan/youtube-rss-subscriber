@@ -13,6 +13,17 @@ happen via `yrs update`, running it either manually or via cron.
 
 ## Installation
 
+Installation from source:
+
+```
+pip install setuptools wheel
+python setup.py bdist_wheel
+```
+This will generate a new \*.whl package in ./dist which you can install: `pip install ./dist/youtube-rss-subscriber-(VERSION).whl`
+
+
+...or install from PyPI:
+
 ```
 pip install youtube-rss-subscriber
 ```
