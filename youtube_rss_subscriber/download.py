@@ -1,5 +1,5 @@
 import copy
-import youtube_dl
+import yt_dlp as youtube_dl
 from youtube_rss_subscriber.config import Config
 
 
