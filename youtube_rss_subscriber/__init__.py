@@ -203,7 +203,7 @@ def update(ctx: click.Context, dryrun: bool, download: bool, apply_filters: bool
                     print("Title: ", video.title)
                     print("URL: ", video.url)
 
-                    if download and channel.autodownload:
+                    if download or channel.autodownload:
                         dl.download(video.url, dryrun=dryrun)
                         video.downloaded = 1
                     else:
