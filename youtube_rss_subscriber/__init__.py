@@ -17,6 +17,20 @@ from youtube_rss_subscriber import config, download as dl, schema
 
 log: logging.Logger = logging.getLogger(__name__)
 
+TITLE_FILTERS = [
+        "Official Music Video",
+        "Music Video",
+        "Official Video",
+]
+
+
+def video_filter_match(video_title: str, filters: list) -> bool:
+    """ Takes the title of a video and compares it against
+    a list of filters, returning True if a match is found"""
+
+    if any([x for x in filters if x.lower() in video_title.lower()]):
+        return True
+
 
 def retrieve_videos(channel: schema.Channel) -> Collection[schema.Video]:
     r = requests.get(channel.rss)
@@ -161,7 +175,8 @@ def subscribe_by_id(
 @click.pass_context
 @click.option("--dryrun", is_flag=True, default=False)
 @click.option("--download/--no-download", default=True)
-def update(ctx: click.Context, dryrun: bool, download: bool) -> None:
+@click.option("--apply-filters", is_flag=True, default=False)
+def update(ctx: click.Context, dryrun: bool, download: bool, apply_filters: bool) -> None:
     session = ctx.obj["dbsession"]
     futures = {}
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -179,6 +194,11 @@ def update(ctx: click.Context, dryrun: bool, download: bool) -> None:
             channel = futures[f]
             for video in videos:
                 if not session.query(schema.Video).filter_by(id=video.id).first():
+                    if apply_filters and not video_filter_match(video.title, TITLE_FILTERS):
+                        video.downloaded = 0
+                        session.merge(video)
+                        continue
+
                     print("Channel: ", channel.name)
                     print("Title: ", video.title)
                     print("URL: ", video.url)
@@ -263,6 +283,7 @@ def download(ctx: click.Context, video_id: str, dryrun: bool) -> None:
     if not video:
         print("The video ID provided was not found", file=sys.stderr)
         sys.exit(1)
+
     dl.download(video.url, dryrun=dryrun)
 
 
